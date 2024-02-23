@@ -23,29 +23,26 @@ from google.oauth2 import service_account
 import sys
 sys.path.append('/opt/airflow/dags')
 
-## airflow環境這行要刪掉
-## sys.path.append('/Users/stephanie/airflow_docker/dags')
-
 from extract import Extract
 from transform import Transform
 from load import Load
 
 # 定義每個task的函數
 
-def run_etl_JP(country, startdate, enddate):
-    df = Extract().crawler(country, startdate, enddate)
+def run_etl_JP():
+    df = Extract().crawler('JP', '240404', '240407')
     transform_df = Transform().transform(df)
     print(transform_df.head())
     Load().load(transform_df)
 
-def run_etl_HK(country, startdate, enddate):
-    df = Extract().crawler(country, startdate, enddate)
+def run_etl_HK():
+    df = Extract().crawler('HK', '240404', '240407')
     transform_df = Transform().transform(df)
     print(transform_df.head())
     Load().load(transform_df)
 
-def run_etl_KR(country, startdate, enddate):
-    df = Extract().crawler(country, startdate, enddate)
+def run_etl_KR():
+    df = Extract().crawler('KR', '240404', '240407')
     transform_df = Transform().transform(df)
     print(transform_df.head())
     Load().load(transform_df)
@@ -63,7 +60,7 @@ default_args = {
 dag = DAG(
     'flight_ticket',
     default_args = default_args,
-    start_date = dt.datetime(2024, 1, 11, 8, 35, 0),
+    start_date = dt.datetime(2024, 1, 4, 8, 35, 0),
     schedule_interval = dt.timedelta(hours=4),
     catchup = False
 )
@@ -71,20 +68,17 @@ dag = DAG(
 with dag:
     task1 = PythonOperator(
         task_id = "JP",
-        python_callable = run_etl_JP('JP', '240404', '240407'),
-        #dag = dag
+        python_callable = run_etl_JP,
     )
 
     task2 = PythonOperator(
         task_id = "HK",
-        python_callable = run_etl_HK('HK', '240404', '240407'),
-        #dag = dag
+        python_callable = run_etl_HK,
     )
 
     task3 = PythonOperator(
         task_id = "KR",
-        python_callable = run_etl_KR('KR', '240404', '240407'),
-        #dag = dag
+        python_callable = run_etl_KR,
     )
 
     task1 >> task2 >> task3
